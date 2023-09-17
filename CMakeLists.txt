@@ -9,7 +9,7 @@ set(PROJECT_NAME "LilyChorus")
 # Set the plugin formats you'll be building here.
 # Valid formats: AAX Unity VST AU AUv3 Standalone
 # set(FORMATS AU VST3 Standalone)
-set(FORMATS VST3 Standalone)
+set(FORMATS VST3)
 
 # This must be set before the project() call
 # see: https://cmake.org/cmake/help/latest/variable/CMAKE_OSX_DEPLOYMENT_TARGET.html

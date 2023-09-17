@@ -7,17 +7,18 @@
 // https://www.soundonsound.com/techniques/more-creative-synthesis-delays
 
 template <typename SampleType>
-class LushChorus {
+class LushChorus
+{
 public:
     LushChorus();
-    void prepare(const juce::dsp::ProcessSpec& spec);
+    void prepare(const juce::dsp::ProcessSpec &spec);
     void reset();
 
     template <typename ProcessContext>
-    void process(const ProcessContext& context) noexcept
+    void process(const ProcessContext &context) noexcept
     {
-        const auto& inputBlock = context.getInputBlock();
-        auto& outputBlock = context.getOutputBlock();
+        const auto &inputBlock = context.getInputBlock();
+        auto &outputBlock = context.getOutputBlock();
         const auto numChannels = outputBlock.getNumChannels();
         const auto numSamples = outputBlock.getNumSamples();
         if (context.isBypassed)
@@ -26,9 +27,10 @@ public:
             return;
         }
 
-        SampleType* delaySamples[numberOfDelayLines];
+        SampleType *delaySamples[numberOfDelayLines];
 
-        for (size_t i = 0; i < numberOfDelayLines; ++i) {
+        for (size_t i = 0; i < numberOfDelayLines; ++i)
+        {
             auto delayValuesBlock = juce::dsp::AudioBlock<SampleType>(bufferDelayTimes[i]).getSubBlock(0, numSamples);
             auto contextDelay = juce::dsp::ProcessContextReplacing<SampleType>(delayValuesBlock);
             delayValuesBlock.clear();
@@ -40,34 +42,77 @@ public:
 
             for (size_t j = 0; j < numSamples; ++j)
             {
-                auto lfo = juce::jmax(static_cast<SampleType> (1.0), maximumDelayModulation * delaySamples[i][j] + centreDelay);
-                delaySamples[i][j] = static_cast<SampleType> (lfo * sampleRate / 1000.0);
+                auto lfo = juce::jmax(static_cast<SampleType>(1.0), maximumDelayModulation * delaySamples[i][j] + centreDelay);
+                delaySamples[i][j] = static_cast<SampleType>(lfo * sampleRate / 1000.0);
             }
         }
 
         for (size_t channel = 0; channel < numChannels; ++channel)
         {
-            auto* inputSamples = inputBlock.getChannelPointer(channel);
-            auto* outputSamples = outputBlock.getChannelPointer(channel);
+            auto *inputSamples = inputBlock.getChannelPointer(channel);
+            auto *outputSamples = outputBlock.getChannelPointer(channel);
 
             for (size_t i = 0; i < numSamples; ++i)
             {
-                auto output = inputSamples[i];
-                for (size_t j = 0; j < numberOfDelayLines; ++j) {
+                SampleType wet = 0.0;
+                for (size_t j = 0; j < numberOfDelayLines; ++j)
+                {
                     size_t favouredChannel = j % numChannels;
-                    SampleType multiplier = 0.25;
-                    if (favouredChannel == channel) {
-                        multiplier = 1.0;
+                    SampleType multiplier = 1.0 * (1.0 - spread);
+                    if (favouredChannel == channel)
+                    {
+                        multiplier = 1.0 * spread;
                     }
                     delay[j].pushSample((int)channel, inputSamples[i]);
                     delay[j].setDelay(delaySamples[j][i]);
-                    output += delay[j].popSample((int)channel) * multiplier;
-                    
+                    wet += delay[j].popSample((int)channel) * multiplier;
                 }
-                
-                outputSamples[i] = static_cast<SampleType> (output * 0.20);
+
+                wet = wet / (numberOfDelayLines * 0.5);
+                auto output = (inputSamples[i] * (1.0 - mix)) + (wet * mix);
+
+                outputSamples[i] = static_cast<SampleType>(output);
             }
         }
+    }
+
+    void setRate(SampleType rate)
+    {
+        if (rate != this->rate)
+        {
+            this->rate = rate;
+            update();
+        }
+    }
+
+    void setDepth(SampleType depth)
+    {
+        if (depth != this->depth)
+        {
+            this->depth = depth;
+            update();
+        }
+    }
+
+    void setMix(SampleType mix)
+    {
+        this->mix = mix;
+    }
+
+    void setDelay(SampleType delay)
+    {
+        this->centreDelay = delay;
+    }
+
+    void setSpread(SampleType spread)
+    {
+        this->spread = spread;
+    }
+
+    void setRateSpread(SampleType spread)
+    {
+        this->rateSpread = spread;
+        update();
     }
 
 private:
@@ -82,10 +127,10 @@ private:
     juce::AudioBuffer<SampleType> bufferDelayTimes[numberOfDelayLines];
 
     SampleType rate = 0.5, depth = 0.25, mix = 0.5,
-        centreDelay = 7.0;
+               centreDelay = 7.0, spread = 0.75, rateSpread = 0.5;
 
     static constexpr SampleType maxDepth = 1.0,
-        maxCentreDelayMs = 100.0,
-        oscVolumeMultiplier = 0.5,
-        maximumDelayModulation = 20.0;
+                                maxCentreDelayMs = 100.0,
+                                oscVolumeMultiplier = 0.5,
+                                maximumDelayModulation = 20.0;
 };
