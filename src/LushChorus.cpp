@@ -50,7 +50,6 @@ void LushChorus<SampleType>::update()
 {
     for (size_t i = 0; i < numberOfDelayLines; ++i)
     {
-        // osc[i].setFrequency(static_cast<SampleType>(rate / (i + 1)));
         osc[i].setFrequency(static_cast<SampleType>(rate / (1 + rateSpread * i)));
     }
 
