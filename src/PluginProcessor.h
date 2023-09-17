@@ -58,12 +58,7 @@ public:
     void getStateInformation(juce::MemoryBlock &destData) override;
     void setStateInformation(const void *data, int sizeInBytes) override;
 
-    juce::AudioParameterFloat *rate;
-    juce::AudioParameterFloat *depth;
-    juce::AudioParameterFloat *mix;
-    juce::AudioParameterFloat *delay;
-    juce::AudioParameterFloat *spread;
-    juce::AudioParameterFloat *rateSpread;
+    juce::AudioProcessorValueTreeState state;
 
 private:
     //==============================================================================

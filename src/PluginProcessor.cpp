@@ -1,11 +1,3 @@
-/*
-  ==============================================================================
-
-    This file contains the basic framework code for a JUCE plugin processor.
-
-  ==============================================================================
-*/
-
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
@@ -21,7 +13,7 @@ inline juce::String float_to_percent_label(float value, int maximumStringLength)
     return juce::String(percentage);
 }
 
-inline juce::AudioParameterFloat *buildParam(
+inline std::unique_ptr<juce::AudioParameterFloat> buildParam(
     const juce::ParameterID &parameterID,
     const juce::String &parameterName,
     float min,
@@ -31,7 +23,7 @@ inline juce::AudioParameterFloat *buildParam(
     const juce::String &parameterLabel,
     std::function<juce::String(float value, int maximumStringLength)> stringFromValue = nullptr)
 {
-    return new juce::AudioParameterFloat(
+    return std::make_unique<juce::AudioParameterFloat>(
         parameterID,
         parameterName,
         juce::NormalisableRange<float>(min, max, step),
@@ -42,32 +34,35 @@ inline juce::AudioParameterFloat *buildParam(
         nullptr);
 }
 
-//==============================================================================
-ChorusAudioProcessor::ChorusAudioProcessor()
-#ifndef JucePlugin_PreferredChannelConfigurations
-    : AudioProcessor(BusesProperties()
-#if !JucePlugin_IsMidiEffect
-#if !JucePlugin_IsSynth
-                         .withInput("Input", juce::AudioChannelSet::stereo(), true)
-#endif
-                         .withOutput("Output", juce::AudioChannelSet::stereo(), true)
-#endif
-      )
-#endif
+float getParameterValue(juce::AudioProcessorValueTreeState &state, const juce::String &paramID)
 {
-    addParameter(rate = new juce::AudioParameterFloat("rate", "Rate", 0.0f, 10.0f, 0.5f));
-    addParameter(rateSpread = buildParam("ratespread", "Rate Spread", 0.01f, 1.0f, 0.5f, 0.01f, "%", float_to_percent_label));
-    addParameter(depth = buildParam("depth", "Depth", 0.0f, 1.0f, 0.25f, 0.01f, "%", float_to_percent_label));
-    addParameter(mix = buildParam("mix", "Mix", 0.0f, 1.0f, 0.5f, 0.01f, "%", float_to_percent_label));
-    addParameter(delay = buildParam("delay", "Delay", 1.0f, 50.0f, 7.0f, 1.0, "ms"));
-    addParameter(spread = buildParam("spread", "Stereo Spread", 0.5f, 1.0f, 0.9f, 0.005f, "%", spread_value_to_label));
+    auto &param = *state.getParameter(paramID);
+    auto range = state.getParameterRange(paramID);
+    return range.convertFrom0to1(param.getValue());
+}
+
+ChorusAudioProcessor::ChorusAudioProcessor()
+    : AudioProcessor(
+          BusesProperties()
+              .withInput("Input", juce::AudioChannelSet::stereo(), true)
+              .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
+      state(
+          *this, nullptr, "state",
+          {std::make_unique<juce::AudioParameterFloat>("rate", "Rate", juce::NormalisableRange<float>(0.0f, 10.0f), 0.5f),
+           buildParam("rate_spread", "Rate Spread", 0.01f, 1.0f, 0.5f, 0.01f, "%", float_to_percent_label),
+           buildParam("depth", "Depth", 0.0f, 1.0f, 0.25f, 0.01f, "%", float_to_percent_label),
+           buildParam("mix", "Mix", 0.0f, 1.0f, 0.5f, 0.01f, "%", float_to_percent_label),
+           buildParam("delay", "Delay", 1.0f, 50.0f, 7.0f, 1.0, "ms"),
+           buildParam("spread", "Stereo Spread", 0.5f, 1.0f, 0.9f, 0.005f, "%", spread_value_to_label)})
+{
+    // Add a sub-tree to store the state of our UI
+    state.state.addChild({"uiState", {{"width", 400}, {"height", 200}}, {}}, -1, nullptr);
 }
 
 ChorusAudioProcessor::~ChorusAudioProcessor()
 {
 }
 
-//==============================================================================
 const juce::String ChorusAudioProcessor::getName() const
 {
     return JucePlugin_Name;
@@ -182,12 +177,12 @@ void ChorusAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::
 
     juce::dsp::AudioBlock<float> block{buffer};
     auto &chorus = processorChain.get<chorusIndex>();
-    chorus.setRate(*rate);
-    chorus.setDepth(*depth);
-    chorus.setMix(*mix);
-    chorus.setDelay(*delay);
-    chorus.setSpread(*spread);
-    chorus.setRateSpread(*rateSpread);
+    chorus.setRate(getParameterValue(state, "rate"));
+    chorus.setDepth(getParameterValue(state, "depth"));
+    chorus.setMix(getParameterValue(state, "mix"));
+    chorus.setDelay(getParameterValue(state, "delay"));
+    chorus.setSpread(getParameterValue(state, "spread"));
+    chorus.setRateSpread(getParameterValue(state, "rate_spread"));
 
     processorChain.process(juce::dsp::ProcessContextReplacing<float>(block));
 }
@@ -203,39 +198,25 @@ juce::AudioProcessorEditor *ChorusAudioProcessor::createEditor()
     return new ChorusAudioProcessorEditor(*this);
 }
 
-//==============================================================================
 void ChorusAudioProcessor::getStateInformation(juce::MemoryBlock &destData)
 {
-    std::unique_ptr<juce::XmlElement> xml(new juce::XmlElement("ParamTutorial"));
-    xml->setAttribute("rate", (double)*rate);
-    xml->setAttribute("depth", (double)*depth);
-    xml->setAttribute("mix", (double)*mix);
-    xml->setAttribute("delay", (double)*delay);
-    xml->setAttribute("spread", (double)*spread);
-    xml->setAttribute("rate_spread", (double)*rateSpread);
-    copyXmlToBinary(*xml, destData);
+    // Store an xml representation of our state.
+    if (auto xmlState = state.copyState().createXml())
+    {
+        copyXmlToBinary(*xmlState, destData);
+    }
 }
 
 void ChorusAudioProcessor::setStateInformation(const void *data, int sizeInBytes)
 {
-    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
-
-    if (xmlState.get() != nullptr)
+    // Restore our plug-in's state from the xml representation stored in the above
+    // method.
+    if (auto xmlState = getXmlFromBinary(data, sizeInBytes))
     {
-        if (xmlState->hasTagName("ParamTutorial"))
-        {
-            *rate = (float)xmlState->getDoubleAttribute("rate", 0.5);
-            *depth = (float)xmlState->getDoubleAttribute("depth", 0.25);
-            *mix = (float)xmlState->getDoubleAttribute("mix", 0.5);
-            *delay = (float)xmlState->getDoubleAttribute("delay", 7.0);
-            *spread = (float)xmlState->getDoubleAttribute("spread", 0.75);
-            *rateSpread = (float)xmlState->getDoubleAttribute("rate_spread", 0.5);
-        }
+        state.replaceState(juce::ValueTree::fromXml(*xmlState));
     }
 }
 
-//==============================================================================
-// This creates new instances of the plugin..
 juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter()
 {
     return new ChorusAudioProcessor();
