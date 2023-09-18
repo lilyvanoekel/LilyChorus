@@ -200,7 +200,6 @@ juce::AudioProcessorEditor *ChorusAudioProcessor::createEditor()
 
 void ChorusAudioProcessor::getStateInformation(juce::MemoryBlock &destData)
 {
-    // Store an xml representation of our state.
     if (auto xmlState = state.copyState().createXml())
     {
         copyXmlToBinary(*xmlState, destData);
@@ -209,8 +208,6 @@ void ChorusAudioProcessor::getStateInformation(juce::MemoryBlock &destData)
 
 void ChorusAudioProcessor::setStateInformation(const void *data, int sizeInBytes)
 {
-    // Restore our plug-in's state from the xml representation stored in the above
-    // method.
     if (auto xmlState = getXmlFromBinary(data, sizeInBytes))
     {
         state.replaceState(juce::ValueTree::fromXml(*xmlState));

@@ -1,11 +1,3 @@
-/*
-  ==============================================================================
-
-    This file contains the basic framework code for a JUCE plugin editor.
-
-  ==============================================================================
-*/
-
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
@@ -30,22 +22,16 @@ public:
         juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextBoxBelow};
 };
 
-//==============================================================================
-/**
- */
 class ChorusAudioProcessorEditor : public juce::AudioProcessorEditor, private juce::Value::Listener
 {
 public:
     ChorusAudioProcessorEditor(ChorusAudioProcessor &);
     ~ChorusAudioProcessorEditor() override;
 
-    //==============================================================================
-    void paint(juce::Graphics &) override;
+        void paint(juce::Graphics &) override;
     void resized() override;
 
 private:
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
     ChorusAudioProcessor &audioProcessor;
 
     LabeledSlider rateSlider{"Rate"};
@@ -56,9 +42,6 @@ private:
     LabeledSlider spreadSlider{"Stereo Spread"};
     juce::AudioProcessorValueTreeState::SliderAttachment rateAttachment, rateSpreadAttachment, depthAttachment, mixAttachment, delayAttachment, spreadAttachment;
 
-    // these are used to persist the UI's size - the values are stored along with the
-    // filter's other parameters, and the UI component will update them when it gets
-    // resized.
     juce::Value lastUIWidth, lastUIHeight;
     void valueChanged(juce::Value &value) override;
 

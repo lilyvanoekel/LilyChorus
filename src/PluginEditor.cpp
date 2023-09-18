@@ -1,15 +1,6 @@
-/*
-  ==============================================================================
-
-    This file contains the basic framework code for a JUCE plugin editor.
-
-  ==============================================================================
-*/
-
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-//==============================================================================
 ChorusAudioProcessorEditor::ChorusAudioProcessorEditor(ChorusAudioProcessor &p)
     : AudioProcessorEditor(&p),
       audioProcessor(p),
@@ -44,7 +35,6 @@ ChorusAudioProcessorEditor::~ChorusAudioProcessorEditor()
 {
 }
 
-//==============================================================================
 void ChorusAudioProcessorEditor::paint(juce::Graphics &g)
 {
     g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
