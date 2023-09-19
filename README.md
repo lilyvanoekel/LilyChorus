@@ -42,5 +42,5 @@ cmake --build Builds --config Release
 ## Resources
 
 - [Pamplejuce](https://github.com/sudara/pamplejuce)
-- [The Audio Programmer](https://www.youtube.com/@TheAudioProgrammer)
+- [The Audio Programmer](https://www.youtube.com/@TheAudioProgrammer) (this will start talking at you when you click it)
 - [Valentine](https://github.com/Tote-Bag-Labs/valentine)
