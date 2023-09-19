@@ -28,7 +28,7 @@ Currently it's in an early state. It works, on my computer, but:
 
 ## Obtaining
 
-Binaries might be available later, sorry!
+Check under releases!
 
 ## Building
 
