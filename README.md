@@ -43,3 +43,4 @@ cmake --build Builds --config Release
 
 - [Pamplejuce](https://github.com/sudara/pamplejuce)
 - [The Audio Programmer](https://www.youtube.com/@TheAudioProgrammer)
+- [Valentine](https://github.com/Tote-Bag-Labs/valentine)
