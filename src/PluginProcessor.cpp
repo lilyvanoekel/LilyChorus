@@ -48,7 +48,7 @@ ChorusAudioProcessor::ChorusAudioProcessor()
               .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
       state(
           *this, nullptr, "state",
-          {std::make_unique<juce::AudioParameterFloat>("rate", "Rate", juce::NormalisableRange<float>(0.0f, 10.0f), 0.5f),
+          {std::make_unique<juce::AudioParameterFloat>("rate", "Rate", juce::NormalisableRange<float>(0.0f, 10.0f, 0.01f), 0.5f),
            buildParam("rate_spread", "Rate Spread", 0.01f, 1.0f, 0.5f, 0.01f, "%", float_to_percent_label),
            buildParam("depth", "Depth", 0.0f, 1.0f, 0.25f, 0.01f, "%", float_to_percent_label),
            buildParam("mix", "Mix", 0.0f, 1.0f, 0.5f, 0.01f, "%", float_to_percent_label),

@@ -18,7 +18,7 @@ Currently it's in an early state. It works, on my computer, but:
 - There are no binaries
 - There is no CI
 - The default settings of the params are not very good
-- ...
+- Lots of warnings
 
 ## Obtaining
 
@@ -32,3 +32,8 @@ It uses cmake so should hopefully be easy to build. I've been building it on win
 cmake -B Builds -G "Visual Studio 17 2022" -T "ClangCL"
 cmake --build Builds --config Release
 ```
+
+## Resources
+
+- [Pamplejuce](https://github.com/sudara/pamplejuce)
+- [The Audio Programmer](https://www.youtube.com/@TheAudioProgrammer)

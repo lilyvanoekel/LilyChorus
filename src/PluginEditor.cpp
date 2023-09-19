@@ -18,7 +18,10 @@ ChorusAudioProcessorEditor::ChorusAudioProcessorEditor(ChorusAudioProcessor &p)
     addAndMakeVisible(delaySlider);
     addAndMakeVisible(spreadSlider);
 
-    setResizeLimits(400, 200, 1024, 700);
+    double ratio = 4.0 / 3.0;
+    setResizeLimits(400, 400 / ratio, 2000, 2000 / ratio);
+    getConstrainer()->setFixedAspectRatio(ratio);
+
     setResizable(true, p.wrapperType != juce::AudioProcessor::wrapperType_AudioUnit);
 
     lastUIWidth.referTo(p.state.state.getChildWithName("uiState").getPropertyAsValue("width", nullptr));
@@ -37,7 +40,8 @@ ChorusAudioProcessorEditor::~ChorusAudioProcessorEditor()
 
 void ChorusAudioProcessorEditor::paint(juce::Graphics &g)
 {
-    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
+    g.setColour(Colour(0xFF404040));
+    g.fillAll();
 }
 
 void ChorusAudioProcessorEditor::resized()

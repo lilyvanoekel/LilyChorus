@@ -9,7 +9,7 @@ set(PROJECT_NAME "LilyChorus")
 # Set the plugin formats you'll be building here.
 # Valid formats: AAX Unity VST AU AUv3 Standalone
 # set(FORMATS AU VST3 Standalone)
-set(FORMATS VST3)
+set(FORMATS VST3 Standalone)
 
 # This must be set before the project() call
 # see: https://cmake.org/cmake/help/latest/variable/CMAKE_OSX_DEPLOYMENT_TARGET.html
@@ -116,8 +116,11 @@ target_include_directories(
 
 # We'll need to link to these from our plugin as well as our tests
 set(JUCE_DEPENDENCIES
-    juce::juce_audio_utils
-    juce::juce_dsp)
+    juce_audio_utils
+    juce_audio_processors
+    juce_dsp
+    juce_gui_basics
+    juce_gui_extra)
 
 target_link_libraries("${PROJECT_NAME}"
     PRIVATE
