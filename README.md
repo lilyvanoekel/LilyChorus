@@ -4,6 +4,12 @@ Chorus effect! For making singular things sound like they are in plural. Or maki
 
 Attempts to implement things learned from [this article](https://www.soundonsound.com/techniques/more-creative-synthesis-delays).
 
+## Screenshot
+
+Graphical imagery or the event has not occurred!
+
+<img src="https://github.com/lilyvanoekel/LilyChorus/blob/main/screenshot.png?raw=true" alt="Description" width="400" height="300" />
+
 ## Status
 
 This project mostly just exists for me learning Juce and plugin development.
