@@ -4,6 +4,8 @@
 #include <juce_dsp/juce_dsp.h>
 #include <juce_core/juce_core.h>
 
+#include "Lfo.h"
+
 // https://www.soundonsound.com/techniques/more-creative-synthesis-delays
 
 template <typename SampleType>
@@ -35,7 +37,7 @@ public:
             auto contextDelay = juce::dsp::ProcessContextReplacing<SampleType>(delayValuesBlock);
             delayValuesBlock.clear();
 
-            osc[i].process(contextDelay);
+            lfo[i].process(contextDelay);
             delayValuesBlock.multiplyBy(oscVolume);
 
             delaySamples[i] = bufferDelayTimes[i].getWritePointer(0);
@@ -121,7 +123,7 @@ private:
 
     static const size_t numberOfDelayLines = 4;
 
-    juce::dsp::Oscillator<SampleType> osc[numberOfDelayLines];
+    Lfo<SampleType> lfo[numberOfDelayLines];
     juce::dsp::DelayLine<SampleType, juce::dsp::DelayLineInterpolationTypes::Linear> delay[numberOfDelayLines];
     juce::SmoothedValue<SampleType, juce::ValueSmoothingTypes::Linear> oscVolume;
     juce::AudioBuffer<SampleType> bufferDelayTimes[numberOfDelayLines];

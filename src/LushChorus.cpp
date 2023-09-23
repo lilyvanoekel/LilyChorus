@@ -4,18 +4,12 @@
 template <typename SampleType>
 LushChorus<SampleType>::LushChorus()
 {
-    auto oscFunction = [](SampleType x)
-    { return std::sin(x); };
-    for (size_t i = 0; i < numberOfDelayLines; ++i)
-    {
-        osc[i].initialise(oscFunction);
-    }
 }
 
 template <typename SampleType>
 void LushChorus<SampleType>::prepare(const juce::dsp::ProcessSpec &spec)
 {
-    sampleRate = spec.sampleRate;
+    auto sampleRate = spec.sampleRate;
 
     const auto maxPossibleDelay = std::ceil((maximumDelayModulation * maxDepth * oscVolumeMultiplier + maxCentreDelayMs) * sampleRate / 1000.0);
 
@@ -26,7 +20,7 @@ void LushChorus<SampleType>::prepare(const juce::dsp::ProcessSpec &spec)
 
         bufferDelayTimes[i].setSize(1, (int)spec.maximumBlockSize, false, false, true);
 
-        osc[i].prepare(spec);
+        lfo[i].setSampleRate(sampleRate);
     }
 
     update();
@@ -39,7 +33,6 @@ void LushChorus<SampleType>::reset()
     for (size_t i = 0; i < numberOfDelayLines; ++i)
     {
         delay[i].reset();
-        osc[i].reset();
     }
 
     oscVolume.reset(sampleRate, 0.05);
@@ -50,7 +43,7 @@ void LushChorus<SampleType>::update()
 {
     for (size_t i = 0; i < numberOfDelayLines; ++i)
     {
-        osc[i].setFrequency(static_cast<SampleType>(rate / (1 + rateSpread * i)));
+        lfo[i].setRate(static_cast<SampleType>(rate / (1.0f + rateSpread * i)));
     }
 
     oscVolume.setTargetValue(depth * oscVolumeMultiplier);
