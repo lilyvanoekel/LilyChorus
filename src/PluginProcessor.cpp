@@ -50,12 +50,12 @@ ChorusAudioProcessor::ChorusAudioProcessor()
               .withOutput("Output", AudioChannelSet::stereo(), true)),
       state(
           *this, nullptr, "state",
-          {std::make_unique<AudioParameterFloat>("rate", "Rate", NormalisableRange<float>(0.0f, 10.0f, 0.01f), 0.5f),
-           buildParam("rate_spread", "Rate Spread", 0.01f, 1.0f, 0.5f, 0.01f, "%", float_to_percent_label),
+          {std::make_unique<AudioParameterFloat>("rate", "Rate", NormalisableRange<float>(0.0f, 10.0f, 0.01f), 6.5f),
+           buildParam("rate_spread", "Rate Spread", 0.01f, 1.0f, 0.95f, 0.01f, "%", float_to_percent_label),
            buildParam("depth", "Depth", 0.0f, 1.0f, 0.25f, 0.01f, "%", float_to_percent_label),
            buildParam("mix", "Mix", 0.0f, 1.0f, 0.5f, 0.01f, "%", float_to_percent_label),
-           buildParam("delay", "Delay", 1.0f, 50.0f, 7.0f, 1.0, "ms"),
-           buildParam("spread", "Stereo Spread", 0.5f, 1.0f, 0.9f, 0.005f, "%", spread_value_to_label)})
+           buildParam("delay", "Delay", 1.0f, 50.0f, 17.0f, 1.0, "ms"),
+           buildParam("spread", "Stereo Spread", 0.5f, 1.0f, 0.95f, 0.005f, "%", spread_value_to_label)})
 {
     // Add a sub-tree to store the state of our UI
     state.state.addChild({"uiState", {{"width", 400}, {"height", 200}}, {}}, -1, nullptr);

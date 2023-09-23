@@ -113,8 +113,11 @@ public:
 
     void setRateSpread(SampleType spread)
     {
-        this->rateSpread = spread;
-        update();
+        if (spread != this->rateSpread)
+        {
+            this->rateSpread = spread;
+            update();
+        }
     }
 
 private:
@@ -128,11 +131,11 @@ private:
     juce::SmoothedValue<SampleType, juce::ValueSmoothingTypes::Linear> oscVolume;
     juce::AudioBuffer<SampleType> bufferDelayTimes[numberOfDelayLines];
 
-    SampleType rate = 0.5, depth = 0.25, mix = 0.5,
-               centreDelay = 7.0, spread = 0.75, rateSpread = 0.5;
+    SampleType rate = 6.5, depth = 0.25, mix = 0.5,
+               centreDelay = 17.0, spread = 0.95, rateSpread = 0.95;
 
     static constexpr SampleType maxDepth = 1.0,
                                 maxCentreDelayMs = 100.0,
-                                oscVolumeMultiplier = 0.5,
+                                oscVolumeMultiplier = 0.2,
                                 maximumDelayModulation = 20.0;
 };
