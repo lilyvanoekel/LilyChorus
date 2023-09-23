@@ -1,40 +1,42 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-inline juce::String spread_value_to_label(float value, int maximumStringLength)
+inline String spread_value_to_label(float value, int maximumStringLength)
 {
-    int percentage = juce::roundToInt((value - 0.5f) * 200.0f);
-    return juce::String(percentage);
+    ignoreUnused(maximumStringLength);
+    int percentage = roundToInt((value - 0.5f) * 200.0f);
+    return String(percentage);
 }
 
-inline juce::String float_to_percent_label(float value, int maximumStringLength)
+inline String float_to_percent_label(float value, int maximumStringLength)
 {
-    int percentage = juce::roundToInt(value * 100.0f);
-    return juce::String(percentage);
+    ignoreUnused(maximumStringLength);
+    int percentage = roundToInt(value * 100.0f);
+    return String(percentage);
 }
 
-inline std::unique_ptr<juce::AudioParameterFloat> buildParam(
-    const juce::ParameterID &parameterID,
-    const juce::String &parameterName,
+inline std::unique_ptr<AudioParameterFloat> buildParam(
+    const ParameterID &parameterID,
+    const String &parameterName,
     float min,
     float max,
     float defaultValue,
     float step,
-    const juce::String &parameterLabel,
-    std::function<juce::String(float value, int maximumStringLength)> stringFromValue = nullptr)
+    const String &parameterLabel,
+    std::function<String(float value, int maximumStringLength)> stringFromValue = nullptr)
 {
-    return std::make_unique<juce::AudioParameterFloat>(
+    return std::make_unique<AudioParameterFloat>(
         parameterID,
         parameterName,
-        juce::NormalisableRange<float>(min, max, step),
+        NormalisableRange<float>(min, max, step),
         defaultValue,
         parameterLabel,
-        juce::AudioProcessorParameter::genericParameter,
+        AudioProcessorParameter::genericParameter,
         stringFromValue,
         nullptr);
 }
 
-float getParameterValue(juce::AudioProcessorValueTreeState &state, const juce::String &paramID)
+float getParameterValue(AudioProcessorValueTreeState &state, const String &paramID)
 {
     auto &param = *state.getParameter(paramID);
     auto range = state.getParameterRange(paramID);
@@ -44,11 +46,11 @@ float getParameterValue(juce::AudioProcessorValueTreeState &state, const juce::S
 ChorusAudioProcessor::ChorusAudioProcessor()
     : AudioProcessor(
           BusesProperties()
-              .withInput("Input", juce::AudioChannelSet::stereo(), true)
-              .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
+              .withInput("Input", AudioChannelSet::stereo(), true)
+              .withOutput("Output", AudioChannelSet::stereo(), true)),
       state(
           *this, nullptr, "state",
-          {std::make_unique<juce::AudioParameterFloat>("rate", "Rate", juce::NormalisableRange<float>(0.0f, 10.0f, 0.01f), 0.5f),
+          {std::make_unique<AudioParameterFloat>("rate", "Rate", NormalisableRange<float>(0.0f, 10.0f, 0.01f), 0.5f),
            buildParam("rate_spread", "Rate Spread", 0.01f, 1.0f, 0.5f, 0.01f, "%", float_to_percent_label),
            buildParam("depth", "Depth", 0.0f, 1.0f, 0.25f, 0.01f, "%", float_to_percent_label),
            buildParam("mix", "Mix", 0.0f, 1.0f, 0.5f, 0.01f, "%", float_to_percent_label),
@@ -63,7 +65,7 @@ ChorusAudioProcessor::~ChorusAudioProcessor()
 {
 }
 
-const juce::String ChorusAudioProcessor::getName() const
+const String ChorusAudioProcessor::getName() const
 {
     return JucePlugin_Name;
 }
@@ -113,21 +115,25 @@ int ChorusAudioProcessor::getCurrentProgram()
 
 void ChorusAudioProcessor::setCurrentProgram(int index)
 {
+    ignoreUnused(index);
 }
 
-const juce::String ChorusAudioProcessor::getProgramName(int index)
+const String ChorusAudioProcessor::getProgramName(int index)
 {
+    ignoreUnused(index);
     return {};
 }
 
-void ChorusAudioProcessor::changeProgramName(int index, const juce::String &newName)
+void ChorusAudioProcessor::changeProgramName(int index, const String &newName)
 {
+    ignoreUnused(index);
+    ignoreUnused(newName);
 }
 
 //==============================================================================
 void ChorusAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
-    juce::dsp::ProcessSpec spec = {};
+    dsp::ProcessSpec spec = {};
     spec.sampleRate = sampleRate;
     spec.maximumBlockSize = samplesPerBlock;
     spec.numChannels = getTotalNumInputChannels();
@@ -145,14 +151,14 @@ void ChorusAudioProcessor::releaseResources()
 bool ChorusAudioProcessor::isBusesLayoutSupported(const BusesLayout &layouts) const
 {
 #if JucePlugin_IsMidiEffect
-    juce::ignoreUnused(layouts);
+    ignoreUnused(layouts);
     return true;
 #else
     // This is the place where you check if the layout is supported.
     // In this template code we only support mono or stereo.
     // Some plugin hosts, such as certain GarageBand versions, will only
     // load plugins that support stereo bus layouts.
-    if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono() && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
+    if (layouts.getMainOutputChannelSet() != AudioChannelSet::mono() && layouts.getMainOutputChannelSet() != AudioChannelSet::stereo())
         return false;
 
         // This checks if the input layout matches the output layout
@@ -166,16 +172,17 @@ bool ChorusAudioProcessor::isBusesLayoutSupported(const BusesLayout &layouts) co
 }
 #endif
 
-void ChorusAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages)
+void ChorusAudioProcessor::processBlock(AudioBuffer<float> &buffer, MidiBuffer &midiMessages)
 {
-    juce::ScopedNoDenormals noDenormals;
+    ignoreUnused(midiMessages);
+    ScopedNoDenormals noDenormals;
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear(i, 0, buffer.getNumSamples());
 
-    juce::dsp::AudioBlock<float> block{buffer};
+    dsp::AudioBlock<float> block{buffer};
     auto &chorus = processorChain.get<chorusIndex>();
     chorus.setRate(getParameterValue(state, "rate"));
     chorus.setDepth(getParameterValue(state, "depth"));
@@ -184,7 +191,7 @@ void ChorusAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::
     chorus.setSpread(getParameterValue(state, "spread"));
     chorus.setRateSpread(getParameterValue(state, "rate_spread"));
 
-    processorChain.process(juce::dsp::ProcessContextReplacing<float>(block));
+    processorChain.process(dsp::ProcessContextReplacing<float>(block));
 }
 
 //==============================================================================
@@ -193,12 +200,12 @@ bool ChorusAudioProcessor::hasEditor() const
     return true; // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor *ChorusAudioProcessor::createEditor()
+AudioProcessorEditor *ChorusAudioProcessor::createEditor()
 {
     return new ChorusAudioProcessorEditor(*this);
 }
 
-void ChorusAudioProcessor::getStateInformation(juce::MemoryBlock &destData)
+void ChorusAudioProcessor::getStateInformation(MemoryBlock &destData)
 {
     if (auto xmlState = state.copyState().createXml())
     {
@@ -210,11 +217,11 @@ void ChorusAudioProcessor::setStateInformation(const void *data, int sizeInBytes
 {
     if (auto xmlState = getXmlFromBinary(data, sizeInBytes))
     {
-        state.replaceState(juce::ValueTree::fromXml(*xmlState));
+        state.replaceState(ValueTree::fromXml(*xmlState));
     }
 }
 
-juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter()
+AudioProcessor *JUCE_CALLTYPE createPluginFilter()
 {
     return new ChorusAudioProcessor();
 }

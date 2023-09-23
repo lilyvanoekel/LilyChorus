@@ -3,10 +3,12 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "LushChorus.h"
 
-class ChorusAudioProcessor : public juce::AudioProcessor
+using namespace juce;
+
+class ChorusAudioProcessor : public AudioProcessor
 #if JucePlugin_Enable_ARA
     ,
-                             public juce::AudioProcessorARAExtension
+                             public AudioProcessorARAExtension
 #endif
 {
 public:
@@ -20,12 +22,12 @@ public:
     bool isBusesLayoutSupported(const BusesLayout &layouts) const override;
 #endif
 
-    void processBlock(juce::AudioBuffer<float> &, juce::MidiBuffer &) override;
+    void processBlock(AudioBuffer<float> &, MidiBuffer &) override;
 
-    juce::AudioProcessorEditor *createEditor() override;
+    AudioProcessorEditor *createEditor() override;
     bool hasEditor() const override;
 
-    const juce::String getName() const override;
+    const String getName() const override;
 
     bool acceptsMidi() const override;
     bool producesMidi() const override;
@@ -35,13 +37,13 @@ public:
     int getNumPrograms() override;
     int getCurrentProgram() override;
     void setCurrentProgram(int index) override;
-    const juce::String getProgramName(int index) override;
-    void changeProgramName(int index, const juce::String &newName) override;
+    const String getProgramName(int index) override;
+    void changeProgramName(int index, const String &newName) override;
 
-    void getStateInformation(juce::MemoryBlock &destData) override;
+    void getStateInformation(MemoryBlock &destData) override;
     void setStateInformation(const void *data, int sizeInBytes) override;
 
-    juce::AudioProcessorValueTreeState state;
+    AudioProcessorValueTreeState state;
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ChorusAudioProcessor)
@@ -50,5 +52,5 @@ private:
     {
         chorusIndex
     };
-    juce::dsp::ProcessorChain<LushChorus<float>> processorChain;
+    dsp::ProcessorChain<LushChorus<float>> processorChain;
 };

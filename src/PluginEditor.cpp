@@ -3,7 +3,6 @@
 
 ChorusAudioProcessorEditor::ChorusAudioProcessorEditor(ChorusAudioProcessor &p)
     : AudioProcessorEditor(&p),
-      audioProcessor(p),
       rateAttachment(p.state, "rate", rateSlider.slider),
       rateSpreadAttachment(p.state, "rate_spread", rateSpreadSlider.slider),
       depthAttachment(p.state, "depth", depthSlider.slider),

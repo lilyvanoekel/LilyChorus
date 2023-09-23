@@ -31,12 +31,13 @@ class Lfo
     }
 
 public:
-    Lfo() : pi(2 * acos(static_cast<SampleType>(0.0))),
+    Lfo() : lfoE(static_cast<SampleType>(0.0)),
+            pi(2 * acos(static_cast<SampleType>(0.0))),
             twoPi(2 * pi),
             lfoRate(static_cast<SampleType>(1.0)),
             sampleRate(static_cast<SampleType>(44100.0)),
-            lfoE(static_cast<SampleType>(0.0)),
             normalizationCounter(0)
+
     {
         lfoX = cos(static_cast<SampleType>(0.0));
         lfoY = sin(static_cast<SampleType>(0.0));

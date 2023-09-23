@@ -10,6 +10,7 @@ public:
     void drawRotarySlider(Graphics &g, int x, int y, int width, int height, float sliderPos,
                           const float rotaryStartAngle, const float rotaryEndAngle, Slider &slider)
     {
+        ignoreUnused(slider);
         const float minWidthHeight = jmin(width, height);
         const float radius = minWidthHeight * 0.4f;
         const float innerRadius = radius * 0.7;

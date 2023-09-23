@@ -72,8 +72,6 @@ public:
     void resized() override;
 
 private:
-    ChorusAudioProcessor &audioProcessor;
-
     LabeledSlider rateSlider{"Rate", "hz"};
     LabeledSlider rateSpreadSlider{"Rate Spread", "%"};
     LabeledSlider depthSlider{"Depth", "%"};
