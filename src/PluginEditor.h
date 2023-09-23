@@ -4,24 +4,26 @@
 #include "PluginProcessor.h"
 #include "LookAndFeel.h"
 
-class LabeledSlider : public juce::Component,
-                      public juce::Slider::Listener
+using namespace juce;
+
+class LabeledSlider : public Component,
+                      public Slider::Listener
 {
 public:
-    LabeledSlider(const juce::String &name, const juce::String &units)
+    LabeledSlider(const String &name, const String &units)
         : label("", name),
           valueLabel("", "0 " + units),
           units(units)
     {
         addAndMakeVisible(label);
-        label.setJustificationType(juce::Justification::centredTop);
+        label.setJustificationType(Justification::centredTop);
 
         addAndMakeVisible(slider);
         slider.setLookAndFeel(&chickenKnob);
         slider.addListener(this);
 
         addAndMakeVisible(valueLabel);
-        valueLabel.setJustificationType(juce::Justification::centred);
+        valueLabel.setJustificationType(Justification::centred);
     }
 
     void resized() override
@@ -46,29 +48,29 @@ public:
         slider.setBounds(sliderBounds);
     }
 
-    void sliderValueChanged(juce::Slider *slider) override
+    void sliderValueChanged(Slider *slider) override
     {
-        juce::String valueText = slider->getTextFromValue(slider->getValue());
-        valueLabel.setText(valueText + " " + this->units, juce::dontSendNotification);
+        String valueText = slider->getTextFromValue(slider->getValue());
+        valueLabel.setText(valueText + " " + this->units, dontSendNotification);
     }
 
-    juce::Slider slider{
-        juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::NoTextBox};
+    Slider slider{
+        Slider::RotaryHorizontalVerticalDrag, Slider::NoTextBox};
 
 private:
     ChickenKnobStyle chickenKnob;
-    juce::Label label;
-    juce::Label valueLabel;
-    juce::String units;
+    Label label;
+    Label valueLabel;
+    String units;
 };
 
-class ChorusAudioProcessorEditor : public juce::AudioProcessorEditor, private juce::Value::Listener
+class ChorusAudioProcessorEditor : public AudioProcessorEditor, private Value::Listener
 {
 public:
     ChorusAudioProcessorEditor(ChorusAudioProcessor &);
     ~ChorusAudioProcessorEditor() override;
 
-    void paint(juce::Graphics &) override;
+    void paint(Graphics &) override;
     void resized() override;
 
 private:
@@ -78,10 +80,10 @@ private:
     LabeledSlider mixSlider{"Mix", "%"};
     LabeledSlider delaySlider{"Delay", "ms"};
     LabeledSlider spreadSlider{"Stereo Spread", "%"};
-    juce::AudioProcessorValueTreeState::SliderAttachment rateAttachment, rateSpreadAttachment, depthAttachment, mixAttachment, delayAttachment, spreadAttachment;
+    AudioProcessorValueTreeState::SliderAttachment rateAttachment, rateSpreadAttachment, depthAttachment, mixAttachment, delayAttachment, spreadAttachment;
 
-    juce::Value lastUIWidth, lastUIHeight;
-    void valueChanged(juce::Value &value) override;
+    Value lastUIWidth, lastUIHeight;
+    void valueChanged(Value &value) override;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ChorusAudioProcessorEditor)
 };
