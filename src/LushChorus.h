@@ -49,6 +49,8 @@ public:
             }
         }
 
+        dryWet.pushDrySamples(inputBlock);
+
         for (size_t channel = 0; channel < numChannels; ++channel)
         {
             auto *inputSamples = inputBlock.getChannelPointer(channel);
@@ -70,58 +72,46 @@ public:
                     wet += delay[j].popSample((int)channel) * multiplier;
                 }
 
-                wet = wet / (numberOfDelayLines * 0.5);
-                auto output = (inputSamples[i] * (1.0 - mix)) + (wet * mix);
-
-                outputSamples[i] = static_cast<SampleType>(output);
+                outputSamples[i] = wet / (numberOfDelayLines * 0.5);
             }
         }
-    }
 
-    void setRate(SampleType rate)
-    {
-        if (rate != this->rate)
+        if (enableHighPass)
         {
-            this->rate = rate;
-            update();
+            auto l = outputBlock.getSingleChannelBlock(0);
+            auto r = outputBlock.getSingleChannelBlock(1);
+            highPassFilterL.process(juce::dsp::ProcessContextReplacing<SampleType>(l));
+            highPassFilterR.process(juce::dsp::ProcessContextReplacing<SampleType>(r));
         }
-    }
 
-    void setDepth(SampleType depth)
-    {
-        if (depth != this->depth)
+        if (enableDrive)
         {
-            this->depth = depth;
-            update();
+            for (size_t channel = 0; channel < numChannels; ++channel)
+            {
+                auto *data = outputBlock.getChannelPointer(channel);
+                for (size_t i = 0; i < outputBlock.getNumSamples(); ++i)
+                {
+                    data[i] = juce::dsp::FastMathApproximations::tanh(data[i] * 2.0f);
+                }
+            }
         }
+
+        dryWet.mixWetSamples(outputBlock);
     }
 
-    void setMix(SampleType mix)
-    {
-        this->mix = mix;
-    }
-
-    void setDelay(SampleType delay)
-    {
-        this->centreDelay = delay;
-    }
-
-    void setSpread(SampleType spread)
-    {
-        this->spread = spread;
-    }
-
-    void setRateSpread(SampleType spread)
-    {
-        if (spread != this->rateSpread)
-        {
-            this->rateSpread = spread;
-            update();
-        }
-    }
+    void setRate(SampleType rate);
+    void setDepth(SampleType depth);
+    void setMix(SampleType mix);
+    void setDelay(SampleType delay);
+    void setSpread(SampleType spread);
+    void setRateSpread(SampleType spread);
+    void setEnableHighPass(bool enable);
+    void setHighPassCutoff(SampleType cutoff);
+    void setEnableDrive(bool enable);
 
 private:
     void update();
+    void updateHighPass();
     double sampleRate = 44100.0;
 
     static const size_t numberOfDelayLines = 4;
@@ -130,9 +120,14 @@ private:
     juce::dsp::DelayLine<SampleType, juce::dsp::DelayLineInterpolationTypes::Linear> delay[numberOfDelayLines];
     juce::SmoothedValue<SampleType, juce::ValueSmoothingTypes::Linear> oscVolume;
     juce::AudioBuffer<SampleType> bufferDelayTimes[numberOfDelayLines];
+    juce::dsp::IIR::Filter<SampleType> highPassFilterL;
+    juce::dsp::IIR::Filter<SampleType> highPassFilterR;
+    juce::dsp::DryWetMixer<SampleType> dryWet;
 
     SampleType rate = 6.5, depth = 0.25, mix = 0.5,
-               centreDelay = 17.0, spread = 0.95, rateSpread = 0.95;
+               centreDelay = 17.0, spread = 0.95, rateSpread = 0.95, highPassCutoff = 150.0f;
+
+    bool enableHighPass = false, enableDrive = false;
 
     static constexpr SampleType maxDepth = 1.0,
                                 maxCentreDelayMs = 100.0,

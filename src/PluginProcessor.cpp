@@ -43,6 +43,11 @@ float getParameterValue(AudioProcessorValueTreeState &state, const String &param
     return range.convertFrom0to1(param.getValue());
 }
 
+bool getBoolParamValue(AudioProcessorValueTreeState &state, const String &paramID)
+{
+    return state.getParameter(paramID)->getValue() > 0.5f;
+}
+
 ChorusAudioProcessor::ChorusAudioProcessor()
     : AudioProcessor(
           BusesProperties()
@@ -50,19 +55,56 @@ ChorusAudioProcessor::ChorusAudioProcessor()
               .withOutput("Output", AudioChannelSet::stereo(), true)),
       state(
           *this, nullptr, "state",
-          {std::make_unique<AudioParameterFloat>("rate", "Rate", NormalisableRange<float>(0.0f, 10.0f, 0.01f), 6.5f),
+          {std::make_unique<AudioParameterFloat>("rate", "Rate", NormalisableRange<float>(0.01f, 10.0f, 0.01f, 0.5f), 6.5f),
            buildParam("rate_spread", "Rate Spread", 0.01f, 1.0f, 0.95f, 0.01f, "%", float_to_percent_label),
            buildParam("depth", "Depth", 0.0f, 1.0f, 0.25f, 0.01f, "%", float_to_percent_label),
            buildParam("mix", "Mix", 0.0f, 1.0f, 0.5f, 0.01f, "%", float_to_percent_label),
            buildParam("delay", "Delay", 1.0f, 50.0f, 17.0f, 1.0, "ms"),
-           buildParam("spread", "Stereo Spread", 0.5f, 1.0f, 0.95f, 0.005f, "%", spread_value_to_label)})
+           buildParam("spread", "Stereo Spread", 0.5f, 1.0f, 0.95f, 0.005f, "%", spread_value_to_label),
+           std::make_unique<AudioParameterBool>("enable_highpass", "Enable Highpass", false),
+           std::make_unique<AudioParameterFloat>("highpass_cutoff", "Highpass Cutoff", NormalisableRange<float>(50.0f, 2000.0f, 1.0f, 0.5f), 150.0f),
+           std::make_unique<AudioParameterBool>("enable_drive", "Enable Drive", false)})
 {
     // Add a sub-tree to store the state of our UI
     state.state.addChild({"uiState", {{"width", 400}, {"height", 200}}, {}}, -1, nullptr);
+
+    for (int i = 0; i < state.state.getNumChildren(); ++i)
+    {
+        ValueTree paramTree = state.state.getChild(i);
+        String paramId = paramTree.getProperty("id").toString();
+        state.addParameterListener(paramId, this);
+    }
+}
+
+void ChorusAudioProcessor::parameterChanged(const String &parameterID, float newValue)
+{
+    ignoreUnused(parameterID);
+    ignoreUnused(newValue);
+    updateParams();
+}
+
+void ChorusAudioProcessor::updateParams()
+{
+    auto &chorus = processorChain.get<chorusIndex>();
+    chorus.setRate(getParameterValue(state, "rate"));
+    chorus.setDepth(getParameterValue(state, "depth"));
+    chorus.setMix(getParameterValue(state, "mix"));
+    chorus.setDelay(getParameterValue(state, "delay"));
+    chorus.setSpread(getParameterValue(state, "spread"));
+    chorus.setRateSpread(getParameterValue(state, "rate_spread"));
+    chorus.setEnableHighPass(getBoolParamValue(state, "enable_highpass"));
+    chorus.setHighPassCutoff(getParameterValue(state, "highpass_cutoff"));
+    chorus.setEnableDrive(getBoolParamValue(state, "enable_drive"));
 }
 
 ChorusAudioProcessor::~ChorusAudioProcessor()
 {
+    for (int i = 0; i < state.state.getNumChildren(); ++i)
+    {
+        ValueTree paramTree = state.state.getChild(i);
+        String paramId = paramTree.getProperty("id").toString();
+        state.removeParameterListener(paramId, this);
+    }
 }
 
 const String ChorusAudioProcessor::getName() const
@@ -139,6 +181,7 @@ void ChorusAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     spec.numChannels = getTotalNumInputChannels();
 
     processorChain.prepare(spec);
+    updateParams();
 }
 
 void ChorusAudioProcessor::releaseResources()
@@ -183,14 +226,6 @@ void ChorusAudioProcessor::processBlock(AudioBuffer<float> &buffer, MidiBuffer &
         buffer.clear(i, 0, buffer.getNumSamples());
 
     dsp::AudioBlock<float> block{buffer};
-    auto &chorus = processorChain.get<chorusIndex>();
-    chorus.setRate(getParameterValue(state, "rate"));
-    chorus.setDepth(getParameterValue(state, "depth"));
-    chorus.setMix(getParameterValue(state, "mix"));
-    chorus.setDelay(getParameterValue(state, "delay"));
-    chorus.setSpread(getParameterValue(state, "spread"));
-    chorus.setRateSpread(getParameterValue(state, "rate_spread"));
-
     processorChain.process(dsp::ProcessContextReplacing<float>(block));
 }
 

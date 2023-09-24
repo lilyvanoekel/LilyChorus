@@ -5,7 +5,7 @@
 
 using namespace juce;
 
-class ChorusAudioProcessor : public AudioProcessor
+class ChorusAudioProcessor : public AudioProcessor, public AudioProcessorValueTreeState::Listener
 #if JucePlugin_Enable_ARA
     ,
                              public AudioProcessorARAExtension
@@ -15,6 +15,8 @@ public:
     ChorusAudioProcessor();
     ~ChorusAudioProcessor() override;
 
+    void parameterChanged(const String &parameterID, float newValue) override;
+    void updateParams();
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
 
