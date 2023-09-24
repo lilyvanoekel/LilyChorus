@@ -62,7 +62,10 @@ target_compile_features("${PROJECT_NAME}" PRIVATE cxx_std_20)
 
 # Manually list all .h and .cpp files for the plugin
 set(SourceFiles
-    src/LushChorus.h    
+    src/LabeledSlider.h
+    src/Lfo.h
+    src/LookAndFeel.h
+    src/LushChorus.h
     src/PluginEditor.h
     src/PluginProcessor.h
     src/LushChorus.cpp
