@@ -67,9 +67,13 @@ public:
                     {
                         multiplier = 1.0 * spread;
                     }
-                    delay[j].pushSample((int)channel, inputSamples[i]);
+
+                    SampleType delayedSample = delay[j].popSample((int)channel) * multiplier;
+                    SampleType feedbackSample = delayedSample * feedbackAmount;
+
+                    delay[j].pushSample((int)channel, inputSamples[i] + feedbackSample);
                     delay[j].setDelay(delaySamples[j][i]);
-                    wet += delay[j].popSample((int)channel) * multiplier;
+                    wet += delayedSample;
                 }
 
                 outputSamples[i] = wet / (numberOfDelayLines * 0.5);
@@ -84,18 +88,6 @@ public:
             highPassFilterR.process(juce::dsp::ProcessContextReplacing<SampleType>(r));
         }
 
-        if (enableDrive)
-        {
-            for (size_t channel = 0; channel < numChannels; ++channel)
-            {
-                auto *data = outputBlock.getChannelPointer(channel);
-                for (size_t i = 0; i < outputBlock.getNumSamples(); ++i)
-                {
-                    data[i] = juce::dsp::FastMathApproximations::tanh(data[i] * 2.0f);
-                }
-            }
-        }
-
         dryWet.mixWetSamples(outputBlock);
     }
 
@@ -107,7 +99,7 @@ public:
     void setRateSpread(SampleType spread);
     void setEnableHighPass(bool enable);
     void setHighPassCutoff(SampleType cutoff);
-    void setEnableDrive(bool enable);
+    void setFeedbackAmount(SampleType feedback);
 
 private:
     void update();
@@ -125,9 +117,9 @@ private:
     juce::dsp::DryWetMixer<SampleType> dryWet;
 
     SampleType rate = 6.5, depth = 0.25, mix = 0.5,
-               centreDelay = 17.0, spread = 0.95, rateSpread = 0.95, highPassCutoff = 150.0f;
+               centreDelay = 17.0, spread = 0.95, rateSpread = 0.95, highPassCutoff = 150.0f, feedbackAmount = 0.0f;
 
-    bool enableHighPass = false, enableDrive = false;
+    bool enableHighPass = false;
 
     static constexpr SampleType maxDepth = 1.0,
                                 maxCentreDelayMs = 100.0,

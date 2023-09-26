@@ -133,9 +133,9 @@ void LushChorus<SampleType>::setHighPassCutoff(SampleType cutoff)
 }
 
 template <typename SampleType>
-void LushChorus<SampleType>::setEnableDrive(bool enable)
+void LushChorus<SampleType>::setFeedbackAmount(SampleType feedback)
 {
-    enableDrive = enable;
+    feedbackAmount = feedback;
 }
 
 template class LushChorus<float>;
