@@ -17,7 +17,7 @@ void LushChorus<SampleType>::prepare(const juce::dsp::ProcessSpec &spec)
 
     for (size_t i = 0; i < numberOfDelayLines; ++i)
     {
-        delay[i] = juce::dsp::DelayLine<SampleType, juce::dsp::DelayLineInterpolationTypes::Linear>{static_cast<int>(maxPossibleDelay)};
+        delay[i] = juce::dsp::DelayLine<SampleType, juce::dsp::DelayLineInterpolationTypes::Lagrange3rd>{static_cast<int>(maxPossibleDelay)};
         delay[i].prepare(spec);
 
         bufferDelayTimes[i].setSize(1, (int)spec.maximumBlockSize, false, false, true);
@@ -136,6 +136,32 @@ template <typename SampleType>
 void LushChorus<SampleType>::setFeedbackAmount(SampleType feedback)
 {
     feedbackAmount = feedback;
+}
+
+template <typename SampleType>
+void LushChorus<SampleType>::setInvertFeedback(bool invert)
+{
+    if (invert)
+    {
+        feedbackInvertFactor = -1.0f;
+    }
+    else
+    {
+        feedbackInvertFactor = 1.0f;
+    }
+}
+
+template <typename SampleType>
+void LushChorus<SampleType>::setInvert(bool invert)
+{
+    if (invert)
+    {
+        invertFactor = -1.0f;
+    }
+    else
+    {
+        invertFactor = 1.0f;
+    }
 }
 
 template class LushChorus<float>;

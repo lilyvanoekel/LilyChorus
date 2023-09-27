@@ -69,14 +69,14 @@ public:
                     }
 
                     SampleType delayedSample = delay[j].popSample((int)channel) * multiplier;
-                    SampleType feedbackSample = delayedSample * feedbackAmount;
+                    SampleType feedbackSample = delayedSample * feedbackAmount * feedbackInvertFactor;
 
                     delay[j].pushSample((int)channel, inputSamples[i] + feedbackSample);
                     delay[j].setDelay(delaySamples[j][i]);
                     wet += delayedSample;
                 }
 
-                outputSamples[i] = wet / (numberOfDelayLines * 0.5);
+                outputSamples[i] = wet / (numberOfDelayLines * 0.5) * invertFactor;
             }
         }
 
@@ -100,6 +100,8 @@ public:
     void setEnableHighPass(bool enable);
     void setHighPassCutoff(SampleType cutoff);
     void setFeedbackAmount(SampleType feedback);
+    void setInvertFeedback(bool invert);
+    void setInvert(bool invert);
 
 private:
     void update();
@@ -109,7 +111,7 @@ private:
     static const size_t numberOfDelayLines = 4;
 
     Lfo<SampleType> lfo[numberOfDelayLines];
-    juce::dsp::DelayLine<SampleType, juce::dsp::DelayLineInterpolationTypes::Linear> delay[numberOfDelayLines];
+    juce::dsp::DelayLine<SampleType, juce::dsp::DelayLineInterpolationTypes::Lagrange3rd> delay[numberOfDelayLines];
     juce::SmoothedValue<SampleType, juce::ValueSmoothingTypes::Linear> oscVolume;
     juce::AudioBuffer<SampleType> bufferDelayTimes[numberOfDelayLines];
     juce::dsp::IIR::Filter<SampleType> highPassFilterL;
@@ -117,7 +119,7 @@ private:
     juce::dsp::DryWetMixer<SampleType> dryWet;
 
     SampleType rate = 6.5, depth = 0.25, mix = 0.5,
-               centreDelay = 17.0, spread = 0.95, rateSpread = 0.95, highPassCutoff = 150.0f, feedbackAmount = 0.0f;
+               centreDelay = 17.0, spread = 0.95, rateSpread = 0.95, highPassCutoff = 150.0f, feedbackAmount = 0.0f, invertFactor = 1.0f, feedbackInvertFactor = 1.0f;
 
     bool enableHighPass = false;
 

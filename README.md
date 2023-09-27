@@ -20,6 +20,7 @@ Currently it's in an early state. It works, on my computer, but:
 - It has too many params to be user friendly
 - It's only been tested in Reaper on my computer
 - There is no CI
+- UI is behind on features being added/experimented with
 
 ## Obtaining
 

@@ -63,7 +63,9 @@ ChorusAudioProcessor::ChorusAudioProcessor()
            buildParam("spread", "Stereo Spread", 0.5f, 1.0f, 0.95f, 0.005f, "%", spread_value_to_label),
            std::make_unique<AudioParameterBool>("enable_highpass", "Enable Highpass", false),
            std::make_unique<AudioParameterFloat>("highpass_cutoff", "Highpass Cutoff", NormalisableRange<float>(50.0f, 2000.0f, 1.0f, 0.5f), 150.0f),
-           buildParam("feedback", "Feedback", 0.0f, 1.0f, 0.0f, 0.01f, "%", float_to_percent_label)})
+           buildParam("feedback", "Feedback", 0.0f, 1.0f, 0.0f, 0.01f, "%", float_to_percent_label),
+           std::make_unique<AudioParameterBool>("invert_feedback", "Invert Feedback", false),
+           std::make_unique<AudioParameterBool>("invert", "Invert Chorus", false)})
 {
     // Add a sub-tree to store the state of our UI
     state.state.addChild({"uiState", {{"width", 400}, {"height", 200}}, {}}, -1, nullptr);
@@ -95,6 +97,8 @@ void ChorusAudioProcessor::updateParams()
     chorus.setEnableHighPass(getBoolParamValue(state, "enable_highpass"));
     chorus.setHighPassCutoff(getParameterValue(state, "highpass_cutoff"));
     chorus.setFeedbackAmount(getParameterValue(state, "feedback"));
+    chorus.setInvertFeedback(getBoolParamValue(state, "invert_feedback"));
+    chorus.setInvert(getBoolParamValue(state, "invert"));
 }
 
 ChorusAudioProcessor::~ChorusAudioProcessor()
